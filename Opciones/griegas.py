@@ -4,13 +4,18 @@ griegas.py
 Módulo de letras griegas para las distintas familias de opciones del
 proyecto:
 
-- Griegas analíticas de Black-Scholes estándar (sin dividendos).
+- Griegas analíticas de Black-Scholes estándar (sin dividendos):
+  Delta, Theta, Gamma, Vega y Rho. Delta y Theta calculan tanto call
+  como put mediante el parámetro `tipo`.
 - Theta universal por diferencias finitas para opciones europeas con o
   sin dividendos discretos.
-- Griegas analíticas de Black-76 (opciones sobre futuros).
-- Griegas de opciones americanas con dividendos discretos, calculadas
-  por diferencias finitas sobre `_precio_por_metodo` (que a su vez decide
-  internamente si usar Black aproximado o el árbol binomial CRR).
+- Griegas analíticas de Black-76 (opciones sobre futuros): Delta, Theta,
+  Gamma, Vega y Rho. Delta y Theta calculan tanto call como put mediante
+  el parámetro `tipo`.
+- Griegas de opciones americanas con dividendos discretos (incluyendo
+  Rho), calculadas por diferencias finitas sobre `_precio_por_metodo`
+  (que a su vez decide internamente si usar Black aproximado o el árbol
+  binomial CRR).
 
 Nota general: a diferencia de las griegas analíticas de Black-Scholes,
 las griegas de opciones americanas con dividendos NO tienen fórmula
@@ -19,7 +24,7 @@ parámetro una cantidad pequeña 'h' y evaluando la diferencia en el
 precio resultante.
 """
 
-from precios import Aproximacion_Black, ArbolBinomial_crr, _resolver_u_d, _precio_por_metodo
+from precios import Aproximacion_Black, ArbolBinomial_crr, _resolver_u_d, _precio_por_metodo, Black_76
 
 import numpy as np
 from scipy.stats import norm
@@ -33,17 +38,24 @@ MatrizComo: TypeAlias = Sequence[Sequence[float]]
 
 # ================Letras griegas para Opciones (Black-Scholes estándar)======================
 
-def Delta_c(s0: float, k: float, t: float, r: float, sigma: float, tipo = 'call'):
+def Delta_c(s0: float, k: float, t: float, r: float, sigma: float, tipo='call'):
     """
-    Delta de un CALL europeo bajo Black-Scholes estándar (sin dividendos).
-    Para la Delta de un PUT, usar la identidad: Delta_put = Delta_call - 1.
+    Delta de una opción europea bajo Black-Scholes estándar (sin dividendos).
+
+    Parámetros
+    ----------
+    tipo : 'call' o 'put'.
 
     Regresa
     -------
-    float : Delta del call, en [0, 1].
+    float : Delta del call (en [0, 1]) o del put (en [-1, 0]).
     """
     d1 = (np.log(s0/k) + (r+sigma**2/2)*t)/(sigma*np.sqrt(t))
-    return norm.cdf(d1)
+    if tipo.lower() == 'call':
+        return norm.cdf(d1)
+    else:
+        # Identidad: Delta_put = Delta_call - 1 = N(d1) - 1
+        return norm.cdf(d1) - 1
 
 
 def Theta(s0: float, k: float, t: float, sigma: float, r: float, d1: float, d2: float, tipo="call"):
@@ -80,6 +92,29 @@ def Vega(s0: float, t: float, sigma: float, d1: float):
     float : Vega (derivada del precio respecto a sigma).
     """
     return s0 * np.sqrt(t) * (1 / np.sqrt(2 * np.pi)) * np.exp(-0.5 * d1**2)
+
+
+def Rho(k: float, t: float, r: float, d2: float, tipo='call'):
+    """
+    Rho analítica de Black-Scholes estándar (sin dividendos): derivada del
+    precio respecto a la tasa libre de riesgo r.
+
+    Parámetros
+    ----------
+    k    : Precio de ejercicio (strike).
+    t    : Tiempo al vencimiento, en años.
+    r    : Tasa libre de riesgo anualizada.
+    d2   : d2 de Black-Scholes.
+    tipo : 'call' o 'put'.
+
+    Regresa
+    -------
+    float : Rho de la opción.
+    """
+    if tipo.lower() == 'call':
+        return k * t * np.exp(-r * t) * norm.cdf(d2)
+    else:
+        return -k * t * np.exp(-r * t) * norm.cdf(-d2)
 
 
 # Theta universal para dividendos y sin
@@ -181,19 +216,27 @@ def Gamma_B76(f0: float, r: float, t: float, sigma: float, d1: float) -> float:
     return (df * norm.pdf(d1)) / (f0 * sigma * np.sqrt(t))
 
 
-def Theta_B76(f0: float, r: float, t: float, sigma: float, d1: float, precio: float) -> float:
+def Theta_B76(f0: float, k: float, t: float, r: float, sigma: float, d1: float, tipo='call') -> float:
     """
     Theta analítica de Black-76.
 
+    NOTA: el precio de la opción se recalcula internamente (llamando a
+    Black_76) en vez de recibirse como argumento externo. Esto evita el
+    riesgo de que el usuario pase un 'precio' que no corresponda al
+    'tipo' indicado (por ejemplo, el precio de un call con tipo='put'),
+    lo cual daría una Theta silenciosamente incorrecta. La fórmula en sí
+    tiene la misma forma para call y put; lo único que cambia es qué
+    precio (call o put) se usa.
+
     Parámetros
     ----------
-    precio : precio de la opción (Black-76), necesario como parte de la
-             fórmula de Theta.
+    tipo : 'call' o 'put'.
 
     Regresa
     -------
     float : Theta de la opción.
     """
+    precio = Black_76(f0, k, t, r, sigma, tipo)
     df = np.exp(-r * t)
     primer_termino = -(f0 * sigma * df * norm.pdf(d1)) / (2 * np.sqrt(t))
     return primer_termino + r * precio
@@ -209,6 +252,31 @@ def Vega_B76(f0: float, r: float, t: float, d1: float) -> float:
     """
     df = np.exp(-r * t)
     return f0 * df * np.sqrt(t) * norm.pdf(d1)
+
+
+def Rho_B76(t: float, precio: float) -> float:
+    """
+    Rho analítica de Black-76: derivada del precio respecto a la tasa
+    libre de riesgo r.
+
+    NOTA: en Black-76, d1 y d2 no dependen de r (a diferencia de
+    Black-Scholes estándar), porque F0 ya es un precio forward. Esto hace
+    que el precio sea V = exp(-r*t) * [bracket], donde [bracket] no
+    depende de r, y por lo tanto dV/dr = -t * V exactamente, tanto para
+    call como para put (aquí sí es seguro reutilizar 'precio' sin riesgo
+    de inconsistencia, porque la fórmula es una simple proporcionalidad,
+    no una rama condicional distinta por tipo).
+
+    Parámetros
+    ----------
+    t      : Tiempo al vencimiento, en años.
+    precio : Precio de la opción (Black-76), call o put.
+
+    Regresa
+    -------
+    float : Rho de la opción.
+    """
+    return -t * precio
 
 
 # =================== LETRAS GRIEGAS PARA OPCIONES AMERICANAS CON DIVIDENDOS DISCRETOS ===============================

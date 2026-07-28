@@ -26,8 +26,8 @@ Convenciones de diseño usadas en todo el módulo:
 from precios import (ArregloComo, MatrizComo, Black_Scholes_Fx, Black_76, Aproximacion_Black,
                       ArbolBinomial_crr, _resolver_u_d, graficar_arbol_bin, Black_Scholes, d1_d2,
                       ajuste_s0, Fx_d1_d2, _precio_por_metodo)
-from griegas import (Delta_c, Theta, Gamma, Vega, Theta_Diaria, Delta_B76, Theta_B76, Gamma_B76, Vega_B76,
-                      Delta_A_div, Gamma_A_div, Theta_A_div, Vega_A_div, Rho_A_div)
+from griegas import (Delta_c, Theta, Gamma, Vega, Rho, Theta_Diaria, Delta_B76, Theta_B76, Gamma_B76, Vega_B76,
+                      Rho_B76, Delta_A_div, Gamma_A_div, Theta_A_div, Vega_A_div, Rho_A_div)
 
 import numpy as np
 
@@ -76,13 +76,15 @@ class OpcionEuropea():
         """
         return Black_Scholes(self.s0, self.k, self.t, self.r, self.sigma, tipo)
 
-    @property
-    def delta(self):
+    def delta(self, tipo='Call'):
         """
-        Delta del CALL (Black-Scholes estándar). Para la Delta del put,
-        usar la identidad: delta_put = delta_call - 1.
+        Delta de la opción (Black-Scholes estándar).
+
+        Parámetros
+        ----------
+        tipo : 'call' o 'put'.
         """
-        return Delta_c(self.s0, self.k, self.t, self.r, self.sigma)
+        return Delta_c(self.s0, self.k, self.t, self.r, self.sigma, tipo)
 
     def gamma(self):
         """Gamma de la opción (igual para call y put)."""
@@ -104,6 +106,17 @@ class OpcionEuropea():
         """Vega de la opción (igual para call y put)."""
         d1, d2 = self.d1d2
         return Vega(self.s0, self.t, self.sigma, d1)
+
+    def rho(self, tipo='Call'):
+        """
+        Rho de la opción.
+
+        Parámetros
+        ----------
+        tipo : 'call' o 'put'.
+        """
+        d1, d2 = self.d1d2
+        return Rho(self.k, self.t, self.r, d2, tipo)
 
 
 #=====================================================================================================
@@ -162,10 +175,15 @@ class OpcionEuropeaDiv():
         return Black_Scholes(s0, self.k, self.t, self.r, self.sigma, tipo)
 
     # --------------------LETRAS GRIEGAS----------------------
-    @property
-    def delta(self):
-        """Delta del CALL, usando s0 ajustado por dividendos."""
-        return Delta_c(self.s0_ajustado, self.k, self.t, self.r, self.sigma)
+    def delta(self, tipo='call'):
+        """
+        Delta de la opción, usando s0 ajustado por dividendos.
+
+        Parámetros
+        ----------
+        tipo : 'call' o 'put'.
+        """
+        return Delta_c(self.s0_ajustado, self.k, self.t, self.r, self.sigma, tipo)
 
     def gamma(self):
         """Gamma de la opción, usando s0 ajustado por dividendos."""
@@ -194,6 +212,17 @@ class OpcionEuropeaDiv():
         """Vega de la opción, usando s0 ajustado por dividendos."""
         d1, d2 = self.d1d2
         return Vega(self.s0_ajustado, self.t, self.sigma, d1)
+
+    def rho(self, tipo='call'):
+        """
+        Rho de la opción, usando s0 ajustado por dividendos.
+
+        Parámetros
+        ----------
+        tipo : 'call' o 'put'.
+        """
+        d1, d2 = self.d1d2
+        return Rho(self.k, self.t, self.r, d2, tipo)
 
 
 #=====================================================================================================
@@ -277,6 +306,14 @@ class OpcionForex():
             "Garman-Kohlhagen, no la de Black-Scholes estándar."
         )
 
+    def rho(self):
+        """Pendiente: requiere la(s) fórmula(s) de Rho de Garman-Kohlhagen (hay Rho doméstica y Rho extranjera)."""
+        raise NotImplementedError(
+            "Rho para OpcionForex está pendiente: en Garman-Kohlhagen existen "
+            "dos Rho distintas (respecto a rd y respecto a rf), no una sola "
+            "como en Black-Scholes o Black-76."
+        )
+
 
 #================================================================
 # CLASE DE OPCIONES CON FUTUROS
@@ -341,21 +378,34 @@ class OpcionFuturos():
 
     def theta(self, tipo='call'):
         """
-        Theta de la opción (Black-76). Calcula internamente el precio
-        necesario para la fórmula de Theta.
+        Theta de la opción (Black-76). Theta_B76 recalcula el precio
+        internamente a partir de (f0, k, t, r, sigma, tipo), evitando
+        depender de un precio calculado aparte que pudiera no
+        corresponder al 'tipo' indicado.
 
         Parámetros
         ----------
         tipo : 'call' o 'put'.
         """
         d1, d2 = self.d1d2
-        precio = self.precio(tipo)
-        return Theta_B76(self.f0, self.r, self.t, self.sigma, d1, precio)
+        return Theta_B76(self.f0, self.k, self.t, self.r, self.sigma, d1, tipo)
 
     def vega(self):
         """Vega de la opción (Black-76, igual para call y put)."""
         d1, d2 = self.d1d2
         return Vega_B76(self.f0, self.r, self.t, d1)
+
+    def rho(self, tipo='call'):
+        """
+        Rho de la opción (Black-76). En este modelo, Rho = -t * precio
+        (misma fórmula para call y put, ya que d1/d2 no dependen de r).
+
+        Parámetros
+        ----------
+        tipo : 'call' o 'put'.
+        """
+        precio = self.precio(tipo)
+        return Rho_B76(self.t, precio)
 
 
 #================================================

@@ -6,7 +6,6 @@ clases/opciones.py: OpcionEuropea, OpcionEuropeaDiv, OpcionFuturos y
 OpcionAmericanaDiv.
 """
 
-print('============================================\nOPCIONES EUROPEAS\n============================================')
 #=========================================================================================
 #|                                    OPCIONES EUROPEAS                                  |
 #=========================================================================================
@@ -26,26 +25,28 @@ print(f'resultado: d1 = {d1}, d2 = {d2}')
 
 precio_call = op_europea.precio()  # precio de la opcion europea tipo call
 precio_put = op_europea.precio('Put')  # precio de la opcion europea tipo put
-print(f'precio call = {precio_call}, precio put = {precio_put}')
+print(f'precio call = {precio_call}, precio_put = {precio_put}')
 
 # --------- letras griegas de opcion europea --------------------
-# Nota: Delta_c solo calcula la Delta del CALL. Para el put se usa la
-# identidad delta_put = delta_call - 1 (no requiere una fórmula nueva).
-delta_call_europeo = op_europea.delta
-delta_put_europeo = delta_call_europeo - 1
-print(f'delta = {delta_call_europeo}, delta = {delta_put_europeo}')
+delta_call_europeo = op_europea.delta('call')
+delta_put_europeo = op_europea.delta('put')
+print(f'delta call = {delta_call_europeo}, delta put = {delta_put_europeo}')
 
 gama_europea = op_europea.gamma()
-print(f'gama = {gama_europea}')
+print(f'gama europea = {gama_europea}')
 
 thetaC_europea = op_europea.theta('call')
 thetaP_europea = op_europea.theta('put')
-print(f'theta = {thetaC_europea}, theta = {thetaP_europea}')
+print(f'theta call = {thetaC_europea}, theta Put = {thetaP_europea}')
 
 vega = op_europea.vega()
-print(f'vega = {vega}')
+print(f'el valor de vega = {vega}')
 
-print('============================================\nOPCIONES EUROPEAS CON DIVIDENDOS\n============================================')
+rhoC_europea = op_europea.rho('call')
+rhoP_europea = op_europea.rho('put')
+print(f'rho call = {rhoC_europea}, rho put = {rhoP_europea}')
+
+print('============================================\n============================================')
 #=========================================================================================
 #|                            OPCIONES EUROPEAS CON DIVIDENDOS                           |
 #=========================================================================================
@@ -67,26 +68,32 @@ d1_div, d2_div = europea_dividendos.d1d2
 print(f'd1 = {d1_div}, d2 = {d2_div}')
 
 s0_ajustado = europea_dividendos.s0_ajustado
-print(f's0 ajustado = {s0_ajustado}')
+print(f's0_ajustado = {s0_ajustado}')
 
 p_call_div = europea_dividendos.precio()
 p_put_div = europea_dividendos.precio('put')
 print(f'precio del call con dividendos = {p_call_div}, precio del put con dividendos = {p_put_div}')
 
-delta_div = europea_dividendos.delta
-print(f'delta = {delta_div}')
+delta_call_div = europea_dividendos.delta('call')
+delta_put_div = europea_dividendos.delta('put')
+print(f'delta call con dividendos = {delta_call_div}, delta put con dividendos = {delta_put_div}')
 
 gama_div = europea_dividendos.gamma()
-print(f'gama = {gama_div}')
+print(f'gama con dividendos = {gama_div}')
 
 theta_call_div = europea_dividendos.theta('call')
 theta_put_div = europea_dividendos.theta('put')
-print(f'theta = {theta_call_div}, theta = {theta_put_div}')
+print(f'theta del call con dividendos = {theta_call_div}, theta del put con dividendos = {theta_put_div}')
 
 vega_div = europea_dividendos.vega()
-print(f'vega = {vega_div}')
+print(f'vega con dividendos = {vega_div}')
 
-print('============================================\nOPCIONES CON FORWARDS (FUTUROS)\n============================================')
+rho_call_div = europea_dividendos.rho('call')
+rho_put_div = europea_dividendos.rho('put')
+print(f'rho call con dividendos = {rho_call_div}, rho put con dividendos = {rho_put_div}')
+
+
+print('============================================\n============================================')
 #=========================================================================================
 #|                            OPCIONES CON FORWARDS (FUTUROS)                            |
 #=========================================================================================
@@ -112,18 +119,22 @@ delta_p_fw = op_forward.delta('put')
 print(f'delta call = {delta_c_fw}, delta put = {delta_p_fw}')
 
 gamma_fw = op_forward.gamma()
-print(f'gamma = {gamma_fw}')
+print(f'gamma fw = {gamma_fw}')
 
 theta_c_fw = op_forward.theta('call')
 theta_p_fw = op_forward.theta('put')
-print(f'theta del call = {theta_c_fw}, theta del put = {theta_p_fw}')
+print(f'theta call = {theta_c_fw}, theta put = {theta_p_fw}')
 
 vega_fw = op_forward.vega()
-print(f'vega = {vega_fw}')
+print(f'vega fw = {vega_fw}')
+
+rho_c_fw = op_forward.rho('call')
+rho_p_fw = op_forward.rho('put')
+print(f'rho call = {rho_c_fw}, rho put = {rho_p_fw}')
 
 
 
-print('============================================\nOPCIONES CON AMERICANAS CON DIVIDENDOS DISCRETOS\n============================================')
+print('============================================\n============================================')
 #=========================================================================================
 #|                   OPCIONES CON AMERICANAS CON DIVIDENDOS DISCRETOS                    |
 #=========================================================================================
@@ -144,19 +155,19 @@ opcion_americana_div = OpcionAmericanaDiv(s0, k, t, r, sigma, dividendos, t_divi
 # tipo='put'  -> cae automáticamente al árbol binomial (no existe Black para puts)
 p_call_A_Div = opcion_americana_div.precio('call')
 p_put_A_Div = opcion_americana_div.precio('put')
-print(f'Call Americano con Dividendos = {p_call_A_Div}, Put Americano con Dividendos = {p_put_A_Div}')
+print(f'p_call_A_Div = {p_call_A_Div}, p_put_A_Div = {p_put_A_Div}')
 
 delta_adiv = opcion_americana_div.delta('call')
-print(f'delta = {delta_adiv}')
+print(f'delta_adiv = {delta_adiv}')
 
 gamma_adiv = opcion_americana_div.gamma('call')
-print(f'gamma = {gamma_adiv}')
+print(f'gamma_adiv = {gamma_adiv}')
 
 theta_adiv, _ = opcion_americana_div.theta('call')
-print(f'theta = {theta_adiv}')
+print(f'theta_adiv = {theta_adiv}')
 
 vega_adiv = opcion_americana_div.vega('call')
-print(f'vega = {vega_adiv}')
+print(f'vega_adiv = {vega_adiv}')
 
 rho_adiv = opcion_americana_div.rho('call')
-print(f'rho = {rho_adiv}')
+print(f'rho_adiv = {rho_adiv}')

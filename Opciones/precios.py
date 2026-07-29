@@ -21,7 +21,6 @@ Contiene:
 import numpy as np
 from scipy.stats import norm
 import matplotlib.pyplot as plt
-from decimal import Decimal
 from typing import Sequence, TypeAlias
 import matplotlib.patches as mpatches
 import networkx as nx

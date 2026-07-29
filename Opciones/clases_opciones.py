@@ -23,10 +23,10 @@ Convenciones de diseño usadas en todo el módulo:
   clase los calcula internamente a través de la property `.d1d2`.
 """
 
-from precios import (ArregloComo, MatrizComo, Black_Scholes_Fx, Black_76, Aproximacion_Black,
+from Opciones.precios import (ArregloComo, MatrizComo, Black_Scholes_Fx, Black_76, Aproximacion_Black,
                       ArbolBinomial_crr, _resolver_u_d, graficar_arbol_bin, Black_Scholes, d1_d2,
                       ajuste_s0, Fx_d1_d2, _precio_por_metodo)
-from griegas import (Delta_c, Theta, Gamma, Vega, Rho, Theta_Diaria, Delta_B76, Theta_B76, Gamma_B76, Vega_B76,
+from Opciones.griegas import (Delta_c, Theta, Gamma, Vega, Rho, Theta_Diaria, Delta_B76, Theta_B76, Gamma_B76, Vega_B76,
                       Rho_B76, Delta_A_div, Gamma_A_div, Theta_A_div, Vega_A_div, Rho_A_div)
 
 import numpy as np

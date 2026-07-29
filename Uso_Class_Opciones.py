@@ -6,10 +6,11 @@ clases/opciones.py: OpcionEuropea, OpcionEuropeaDiv, OpcionFuturos y
 OpcionAmericanaDiv.
 """
 
+print('============================================\nOPCIONES EUROPEAS\n============================================')
 #=========================================================================================
 #|                                    OPCIONES EUROPEAS                                  |
 #=========================================================================================
-from clases.opciones import OpcionEuropea
+from Opciones.clases_opciones import OpcionEuropea
 
 s0 = 80
 k = 80
@@ -46,12 +47,12 @@ rhoC_europea = op_europea.rho('call')
 rhoP_europea = op_europea.rho('put')
 print(f'rho call = {rhoC_europea}, rho put = {rhoP_europea}')
 
-print('============================================\n============================================')
+print('============================================\nOPCIONES EUROPEAS CON DIVIDENDOS\n============================================')
 #=========================================================================================
 #|                            OPCIONES EUROPEAS CON DIVIDENDOS                           |
 #=========================================================================================
 
-from clases.opciones import OpcionEuropeaDiv
+from Opciones.clases_opciones import OpcionEuropeaDiv
 
 s0 = 80
 k = 80
@@ -93,11 +94,11 @@ rho_put_div = europea_dividendos.rho('put')
 print(f'rho call con dividendos = {rho_call_div}, rho put con dividendos = {rho_put_div}')
 
 
-print('============================================\n============================================')
+print('============================================\nOPCIONES CON FORWARDS (FUTUROS)\n============================================')
 #=========================================================================================
 #|                            OPCIONES CON FORWARDS (FUTUROS)                            |
 #=========================================================================================
-from clases.opciones import OpcionFuturos
+from Opciones.clases_opciones import OpcionFuturos
 
 f0 = 100
 r = 0.05
@@ -134,12 +135,12 @@ print(f'rho call = {rho_c_fw}, rho put = {rho_p_fw}')
 
 
 
-print('============================================\n============================================')
+print('============================================\nOPCIONES CON AMERICANAS CON DIVIDENDOS DISCRETOS\n============================================')
 #=========================================================================================
 #|                   OPCIONES CON AMERICANAS CON DIVIDENDOS DISCRETOS                    |
 #=========================================================================================
 
-from clases.opciones import OpcionAmericanaDiv
+from Opciones.clases_opciones import OpcionAmericanaDiv
 
 s0 = 80
 k = 80

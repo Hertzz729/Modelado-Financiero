@@ -24,13 +24,11 @@ parámetro una cantidad pequeña 'h' y evaluando la diferencia en el
 precio resultante.
 """
 
-from precios import Aproximacion_Black, ArbolBinomial_crr, _resolver_u_d, _precio_por_metodo, Black_76
-
+from typing import Sequence, TypeAlias
 import numpy as np
 from scipy.stats import norm
-import matplotlib.pyplot as plt
-from decimal import Decimal
-from typing import Sequence, TypeAlias
+
+from Opciones.precios import _precio_por_metodo, Black_76
 
 ArregloComo: TypeAlias = Sequence[float]
 MatrizComo: TypeAlias = Sequence[Sequence[float]]

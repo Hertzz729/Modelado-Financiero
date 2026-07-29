@@ -7,13 +7,11 @@ de precios de mercado observados.
 """
 
 import numpy as np
-from scipy.stats import norm
 import matplotlib.pyplot as plt
-from decimal import Decimal
 from typing import Sequence, TypeAlias
 
-from precios import Black_Scholes
-from griegas import Vega
+from Opciones.clases_opciones import Black_Scholes
+from Opciones.griegas import Vega
 
 ArregloComo: TypeAlias = Sequence[float]
 MatrizComo: TypeAlias = Sequence[Sequence[float]]

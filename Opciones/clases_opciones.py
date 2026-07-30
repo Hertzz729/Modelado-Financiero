@@ -245,25 +245,25 @@ class OpcionForex():
     tipo  : 'call' o 'put'.
     """
 
-    def __init__(self, s0: float, k: float, t: float, sigma: float, rd: float, rf: float, tipo='call'):
+    def __init__(self, s0: float, k: float, t: float, sigma: float, rd: float, rf: float):
         self.s0 = s0
         self.k = k
         self.t = t
         self.sigma = sigma
         self.rd = rd
         self.rf = rf
-        self.tipo = tipo
 
-    @property
-    def precio(self):
+
+
+    def precio(self, tipo = 'call'):
         """Precio de la opción (Garman-Kohlhagen)."""
-        precio, _, _ = Black_Scholes_Fx(self.s0, self.k, self.t, self.sigma, self.rd, self.rf, self.tipo)
+        precio = Black_Scholes_Fx(self.s0, self.k, self.t, self.sigma, self.rd, self.rf, tipo)
         return precio
 
     @property
     def d1d2(self):
         """Calcula (d1, d2) de Garman-Kohlhagen a partir de los atributos de la instancia."""
-        return Fx_d1_d2(self.s0, self.k, self.t, self.sigma, self.rd, self.rf, self.tipo)
+        return Fx_d1_d2(self.s0, self.k, self.t, self.sigma, self.rd, self.rf)
 
     # _____________________ LETRAS GRIEGAS _________________________________
     """

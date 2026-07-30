@@ -209,7 +209,7 @@ def Black_Scholes_Fx(s0: float, k: float, t: float, sigma: float, rd: float, rf:
     else:
         raise ValueError("El parámetro 'tipo' debe ser 'call' o 'put'.")
 
-    return precio, d1, d2
+    return precio
 
 
 # ======================== OPCIONES AMERICANAS =================================

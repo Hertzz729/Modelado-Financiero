@@ -23,7 +23,7 @@ nivel_confianza = 0.95  # 95% de confianza
 horizonte_dias = 1      # Horizonte de 1 día
 
 # ------------------------------------------------------------------------------
-# 2. PASO 1: CALCULAR LA VOLATILIDAD DEL PORTAFOLIO
+# PASO 1: CALCULAR LA VOLATILIDAD DEL PORTAFOLIO
 # ------------------------------------------------------------------------------
 
 sigma_diaria_p = Vol_portafolio(pesos, covarianzas_diarias) # Usamos tu función Vol_portafolio para obtener la sigma_diaria del portafolio completo
@@ -35,7 +35,7 @@ print(f"Rendimiento diario esperado (µ_p) : {mu_diario_p:.6f} ({mu_diario_p * 1
 print(f"Volatilidad diaria calculada (σ_p): {sigma_diaria_p:.6f} ({sigma_diaria_p * 100:.2f}%)")
 
 # ------------------------------------------------------------------------------
-# 3. PASO 2: CALCULAR EL VaR PARAMÉTRICO USANDO LA VOLATILIDAD CALCULADA
+# PASO 2: CALCULAR EL VaR PARAMÉTRICO USANDO LA VOLATILIDAD CALCULADA
 # ------------------------------------------------------------------------------
 # Le pasamos la 'sigma_diaria_p' calculada en el paso anterior a VaR_parametrico
 var_1dia_95 = VaR_parametrico(
@@ -51,15 +51,3 @@ print(f"Nivel de Confianza               : {nivel_confianza * 100:.0f}%")
 print(f"VaR Paramétrico ({horizonte_dias} día)           : ${var_1dia_95:,.2f} USD")
 print(f"Porcentaje de pérdida máxima     : {(var_1dia_95 / valor_portafolio) * 100:.2f}%")
 print("-" * 60)
-
-# ------------------------------------------------------------------------------
-# 4. VERIFICACIONES DE SEGURIDAD (ASSERTS)
-# ------------------------------------------------------------------------------
-# La volatilidad del portafolio diversificado debe ser menor o igual a la del activo más riesgoso
-vol_activos = np.sqrt(np.diag(covarianzas_diarias))
-assert sigma_diaria_p < max(vol_activos), "Error: La diversificación debió reducir la volatilidad máxima."
-
-# El VaR debe ser positivo y coherente con la escala de la inversión
-assert 0 < var_1dia_95 < valor_portafolio * 0.10, "Error: El VaR calculado no es coherente para un horizonte de 1 día."
-
-print("Status: PRUEBA INTEGRADA COMPLETADA CON ÉXITO")

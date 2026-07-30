@@ -1,10 +1,10 @@
 from Riesgo.riesgo import VaR_historico
 import numpy as np
 # ==============================================================================
-# 3. PRUEBA DE VaR_historico
+# EJEMPLO DE VaR_historico
 # ==============================================================================
 print("=" * 60)
-print("3. PRUEBA: VaR Histórico (VaR_historico)")
+print("EJEMPLO VaR Histórico (VaR_historico)")
 print("=" * 60)
 
 valor_portafolio = 1_000_000
@@ -21,6 +21,3 @@ var_hist_99 = VaR_historico(retornos_historicos, valor_portafolio, nivel_confian
 print(f"VaR Histórico (90% Confianza): ${var_hist_90:,.2f}")
 print(f"VaR Histórico (99% Confianza): ${var_hist_99:,.2f}")
 
-# Verificación lógica: A mayor nivel de confianza (99% vs 90%), el VaR DEBE ser mayor.
-assert var_hist_99 > var_hist_90, "Error: El VaR al 99% debería ser mayor que al 90%."
-print("Status: PASÓ LA PRUEBA\n")

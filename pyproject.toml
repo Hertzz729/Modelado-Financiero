@@ -3,7 +3,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "Modelado-Financiero"
+name = "modelado-financiero"
 version = "0.1.0"
 description = "Librería de Finanzas Cuantitativas para valoración de derivados, volatilidad implícita y gestión de riesgo."
 readme = "README.md"

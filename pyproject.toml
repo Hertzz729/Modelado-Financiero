@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "Modelado-Financiero"
+version = "0.1.0"
+description = "Librería de Finanzas Cuantitativas para valoración de derivados, volatilidad implícita y gestión de riesgo."
+readme = "README.md"
+requires-python = ">=3.11"
+
+authors = [
+    {name = "Jerson"},
+    {name = "Comunidad ESFM"}
+]
+
+dependencies = [
+    "numpy>=2.4.6",
+    "scipy>=1.17.1",
+    "matplotlib>=3.11.0",
+    "networkx>=3.6.1"
+]

@@ -37,8 +37,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Sequence, TypeAlias
 
-from .precios import Black_Scholes
-from .griegas import Vega
+from ..opciones.precios import Black_Scholes
+from ..opciones.griegas import Vega
 
 ArregloComo: TypeAlias = Sequence[float]
 MatrizComo: TypeAlias = Sequence[Sequence[float]]

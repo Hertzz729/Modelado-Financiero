@@ -37,8 +37,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from typing import Sequence, TypeAlias
 
-from Opciones.precios import Black_Scholes
-from Opciones.griegas import Vega
+from opciones.precios import Black_Scholes
+from opciones.griegas import Vega
 
 ArregloComo: TypeAlias = Sequence[float]
 MatrizComo: TypeAlias = Sequence[Sequence[float]]
@@ -115,7 +115,7 @@ def estimacion_sigma_Newton(s0: float, k: float, t: float, r: float, precio_merc
     r              : Tasa libre de riesgo anualizada.
     precio_mercado : Precio de mercado observado (del call o del put,
                      según 'tipo').
-    sigma_estimada : Volatilidad inicial (semilla) para iniciar la
+    sigma_estimada : volatilidad inicial (semilla) para iniciar la
                      iteración. Si no se proporciona (None), se calcula
                      automáticamente con semilla_corrado_miller (usando
                      el mismo 'tipo').
@@ -310,7 +310,7 @@ def sonrisa_volatilidad(s0: float, r: float, t: float, strikes: float, precios: 
     strikes       : Arreglo de precios de ejercicio.
     precios       : Arreglo de precios de mercado correspondientes a cada
                     strike (call o put, según 'tipo').
-    sigma_inicial : Volatilidad inicial (semilla) para cada estimación.
+    sigma_inicial : volatilidad inicial (semilla) para cada estimación.
                     Si no se proporciona (None), estimacion_sigma_Newton
                     calcula automáticamente una semilla distinta para cada
                     strike con semilla_corrado_miller.
@@ -331,10 +331,10 @@ def sonrisa_volatilidad(s0: float, r: float, t: float, strikes: float, precios: 
 
     # --------- GRÁFICA ----------
     plt.figure(figsize=(10, 6))
-    plt.plot(strikes, vols, marker='o', linestyle='-', color='b', label='Volatilidad Implícita')
+    plt.plot(strikes, vols, marker='o', linestyle='-', color='b', label='volatilidad Implícita')
     plt.xlabel("Strike (K)")
     plt.ylabel("sigma Implícita")
-    plt.title("Sonrisa de Volatilidad")
+    plt.title("Sonrisa de volatilidad")
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.show()

@@ -23,11 +23,11 @@ Convenciones de diseño usadas en todo el módulo:
   clase los calcula internamente a través de la property `.d1d2`.
 """
 
-from Opciones.precios import (ArregloComo, MatrizComo, Black_Scholes_Fx, Black_76, Aproximacion_Black,
-                      ArbolBinomial_crr, _resolver_u_d, graficar_arbol_bin, Black_Scholes, d1_d2,
-                      ajuste_s0, Fx_d1_d2, _precio_por_metodo)
-from Opciones.griegas import (Delta_c, Theta, Gamma, Vega, Rho, Theta_Diaria, Delta_B76, Theta_B76, Gamma_B76, Vega_B76,
-                      Rho_B76, Delta_A_div, Gamma_A_div, Theta_A_div, Vega_A_div, Rho_A_div)
+from opciones.precios import (ArregloComo, MatrizComo, Black_Scholes_Fx, Black_76, Aproximacion_Black,
+                              ArbolBinomial_crr, _resolver_u_d, graficar_arbol_bin, Black_Scholes, d1_d2,
+                              ajuste_s0, Fx_d1_d2, _precio_por_metodo)
+from opciones.griegas import (Delta_c, Theta, Gamma, Vega, Rho, Theta_Diaria, Delta_B76, Theta_B76, Gamma_B76, Vega_B76,
+                              Rho_B76, Delta_A_div, Gamma_A_div, Theta_A_div, Vega_A_div, Rho_A_div)
 
 import numpy as np
 
@@ -47,7 +47,7 @@ class OpcionEuropea():
     k     : Precio de ejercicio (strike).
     t     : Tiempo al vencimiento, en años.
     r     : Tasa libre de riesgo anualizada.
-    sigma : Volatilidad anualizada del subyacente.
+    sigma : volatilidad anualizada del subyacente.
     """
 
     def __init__(self, s0: float = None, k: float = None, t: float = None, r: float = None, sigma: float = None):
@@ -134,7 +134,7 @@ class OpcionEuropeaDiv():
     k            : Precio de ejercicio (strike).
     t            : Tiempo al vencimiento, en años.
     r            : Tasa libre de riesgo anualizada.
-    sigma        : Volatilidad anualizada del subyacente.
+    sigma        : volatilidad anualizada del subyacente.
     dividendos   : Montos de los dividendos discretos.
     t_dividendos : Tiempos (en años) de cada dividendo.
     """
@@ -239,7 +239,7 @@ class OpcionForex():
     s0    : Tipo de cambio spot actual.
     k     : Precio de ejercicio (strike).
     t     : Tiempo al vencimiento, en años.
-    sigma : Volatilidad anualizada del tipo de cambio.
+    sigma : volatilidad anualizada del tipo de cambio.
     rd    : Tasa libre de riesgo doméstica anualizada.
     rf    : Tasa libre de riesgo extranjera anualizada.
     tipo  : 'call' o 'put'.
@@ -331,7 +331,7 @@ class OpcionFuturos():
     k     : Precio de ejercicio (strike).
     t     : Tiempo al vencimiento, en años.
     r     : Tasa libre de riesgo anualizada (para descuento).
-    sigma : Volatilidad anualizada del futuro.
+    sigma : volatilidad anualizada del futuro.
     """
 
     def __init__(self, f0: float, k: float, t: float, r: float, sigma: float):
@@ -431,7 +431,7 @@ class OpcionAmericanaDiv:
     k            : Precio de ejercicio (strike).
     t            : Tiempo al vencimiento, en años.
     r            : Tasa libre de riesgo anualizada.
-    sigma        : Volatilidad anualizada del subyacente.
+    sigma        : volatilidad anualizada del subyacente.
     dividendos   : Montos de los dividendos discretos.
     t_dividendos : Tiempos (en años) de cada dividendo.
     n            : Número de pasos del árbol binomial (por defecto 200).

@@ -1,5 +1,5 @@
-from Opciones.precios import Black_Scholes
-from Volatilidad.volatilidad import estimacion_sigma_Newton
+from opciones.precios import Black_Scholes
+from volatilidad.volatilidad import estimacion_sigma_Newton
 
 s0 = 80
 k = 85

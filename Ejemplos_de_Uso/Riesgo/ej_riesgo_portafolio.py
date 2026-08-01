@@ -1,5 +1,5 @@
 import numpy as np
-from Riesgo.riesgo import Vol_portafolio, VaR_parametrico
+from riesgo.riesgo import Vol_portafolio, VaR_parametrico
 
 print("=============================================================")
 print("EJEMPLO INTEGRADO: VaR PARAMÉTRICO CON VOLATILIDAD CALCULADA")

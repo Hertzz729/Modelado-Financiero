@@ -1,6 +1,6 @@
 print('============================================\nOPCIONES EUROPEAS\n============================================')
 
-from Opciones.clases_opciones import OpcionEuropea
+from opciones.clases_opciones import OpcionEuropea
 
 s0 = 80
 k = 80

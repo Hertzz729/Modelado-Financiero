@@ -42,7 +42,7 @@ def Black_Scholes(s0: float, k: float, t: float, r: float, sigma: float, tipo='c
     k     : Precio de ejercicio (strike).
     t     : Tiempo al vencimiento, en años.
     r     : Tasa libre de riesgo anualizada.
-    sigma : Volatilidad anualizada del subyacente.
+    sigma : volatilidad anualizada del subyacente.
     tipo  : 'call' o 'put'.
 
     Regresa
@@ -123,7 +123,7 @@ def Black_76(F0: float, k: float, t: float, r: float, sigma: float, tipo='call')
     k     : Precio de ejercicio (strike).
     t     : Tiempo al vencimiento, en años.
     r     : Tasa libre de riesgo anualizada (para descuento).
-    sigma : Volatilidad anualizada del futuro.
+    sigma : volatilidad anualizada del futuro.
     tipo  : 'call' o 'put'.
 
     Regresa
@@ -162,7 +162,7 @@ def Fx_d1_d2(s0: float, k: float, t: float, sigma: float, rd: float, rf: float, 
     s0    : Tipo de cambio spot actual.
     k     : Precio de ejercicio (strike).
     t     : Tiempo al vencimiento, en años.
-    sigma : Volatilidad anualizada del tipo de cambio.
+    sigma : volatilidad anualizada del tipo de cambio.
     rd    : Tasa libre de riesgo doméstica anualizada.
     rf    : Tasa libre de riesgo extranjera anualizada.
     tipo  : 'call' o 'put' (no afecta el cálculo de d1, d2, solo se recibe
@@ -185,7 +185,7 @@ def Black_Scholes_Fx(s0: float, k: float, t: float, sigma: float, rd: float, rf:
     s0    : Tipo de cambio spot actual (e.g., 1.20 USD por EUR)
     k     : Precio de ejercicio (Strike)
     t     : Tiempo hasta el vencimiento en años (e.g., 0.5 para 6 meses)
-    sigma : Volatilidad anualizada del tipo de cambio (e.g., 0.15 para 15%)
+    sigma : volatilidad anualizada del tipo de cambio (e.g., 0.15 para 15%)
     rd    : Tasa de interés libre de riesgo doméstica anualizada (e.g., 0.05)
     rf    : Tasa de interés libre de riesgo extranjera anualizada (e.g., 0.02)
     tipo  : "call" o "put" (sensible a mayúsculas/minúsculas)

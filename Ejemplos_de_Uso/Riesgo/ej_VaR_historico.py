@@ -1,4 +1,4 @@
-from Riesgo.riesgo import VaR_historico
+from riesgo.riesgo import VaR_historico
 import numpy as np
 # ==============================================================================
 # EJEMPLO DE VaR_historico

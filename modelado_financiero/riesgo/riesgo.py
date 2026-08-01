@@ -45,7 +45,7 @@ def VaR_parametrico(portafolio_valor: float, mu: float, sigma: float, nivel_conf
     ----------
     portafolio_valor : Valor total del portafolio.
     mu               : Retorno esperado del portafolio.
-    sigma            : Volatilidad del portafolio.
+    sigma            : volatilidad del portafolio.
     nivel_confianza  : Nivel de confianza (por defecto 0.95).
 
     Regresa
@@ -89,7 +89,7 @@ def VaR_montecarlo(portafolio_valor: float, mu: float, sigma: float, t: float,
     ----------
     portafolio_valor : Valor total del portafolio.
     mu               : Retorno esperado anualizado.
-    sigma            : Volatilidad anualizada.
+    sigma            : volatilidad anualizada.
     t                : Horizonte de tiempo, en años.
     n_simulaciones   : Número de trayectorias simuladas.
     nivel_confianza  : Nivel de confianza (por defecto 0.95).

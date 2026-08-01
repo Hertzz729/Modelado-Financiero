@@ -1,4 +1,4 @@
-from Opciones.clases_opciones import OpcionForex, OpcionEuropea
+from opciones.clases_opciones import OpcionForex, OpcionEuropea
 
 s0 = 1.1
 k = 1.1

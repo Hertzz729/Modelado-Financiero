@@ -1,6 +1,6 @@
 print('============================================\nOPCIONES CON AMERICANAS CON DIVIDENDOS DISCRETOS\n============================================')
 
-from Opciones.clases_opciones import OpcionAmericanaDiv
+from opciones.clases_opciones import OpcionAmericanaDiv
 
 """
 Modificar el metodo de aproximación por el metodo Bjerksund-Stensland

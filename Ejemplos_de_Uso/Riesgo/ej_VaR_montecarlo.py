@@ -1,4 +1,4 @@
-from Riesgo.riesgo import VaR_montecarlo
+from riesgo.riesgo import VaR_montecarlo
 
 # ==============================================================================
 # EJEMPLO DE VaR_montecarlo
@@ -9,7 +9,7 @@ print("EJEMPLO VaR Monte Carlo (VaR_montecarlo)")
 print("=" * 60)
 
 # Escenario: Portafolio a un horizonte de 10 días útiles (10/252 años)
-# Rendimiento anual 10%, Volatilidad anual 20%
+# Rendimiento anual 10%, volatilidad anual 20%
 valor_portafolio = 1_000_000
 mu_anual = 0.10
 sigma_anual = 0.20

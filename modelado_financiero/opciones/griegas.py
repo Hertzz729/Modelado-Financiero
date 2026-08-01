@@ -28,13 +28,13 @@ from typing import Sequence, TypeAlias
 import numpy as np
 from scipy.stats import norm
 
-from Opciones.precios import _precio_por_metodo, Black_76
+from opciones.precios import _precio_por_metodo, Black_76
 
 ArregloComo: TypeAlias = Sequence[float]
 MatrizComo: TypeAlias = Sequence[Sequence[float]]
 
 
-# ================Letras griegas para Opciones (Black-Scholes estándar)======================
+# ================Letras griegas para opciones (Black-Scholes estándar)======================
 
 def Delta_c(s0: float, k: float, t: float, r: float, sigma: float, tipo='call'):
     """

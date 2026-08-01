@@ -1,6 +1,6 @@
 print('============================================\nOPCIONES CON FORWARDS (FUTUROS)\n============================================')
 
-from Opciones.clases_opciones import OpcionFuturos
+from opciones.clases_opciones import OpcionFuturos
 
 f0 = 100
 r = 0.05

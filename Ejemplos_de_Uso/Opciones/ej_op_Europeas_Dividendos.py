@@ -1,6 +1,6 @@
 print('============================================\nOPCIONES EUROPEAS CON DIVIDENDOS\n============================================')
 
-from Opciones.clases_opciones import OpcionEuropeaDiv
+from opciones.clases_opciones import OpcionEuropeaDiv
 
 s0 = 80
 k = 80

@@ -28,7 +28,7 @@ from typing import Sequence, TypeAlias
 import numpy as np
 from scipy.stats import norm
 
-from opciones.precios import _precio_por_metodo, Black_76
+from .precios import _precio_por_metodo, Black_76
 
 ArregloComo: TypeAlias = Sequence[float]
 MatrizComo: TypeAlias = Sequence[Sequence[float]]

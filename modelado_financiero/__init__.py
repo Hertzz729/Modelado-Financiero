@@ -12,7 +12,8 @@ from .opciones import (
 from .riesgo import (
     VaR_parametrico,
     VaR_historico,
-    Vol_portafolio
+    VaR_montecarlo,
+    Vol_portafolio,
 )
 
 from .volatilidad import (

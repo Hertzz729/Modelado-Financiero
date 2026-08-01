@@ -26,7 +26,7 @@ Convenciones de diseño usadas en todo el módulo:
 from opciones.precios import (ArregloComo, MatrizComo, Black_Scholes_Fx, Black_76, Aproximacion_Black,
                               ArbolBinomial_crr, _resolver_u_d, graficar_arbol_bin, Black_Scholes, d1_d2,
                               ajuste_s0, Fx_d1_d2, _precio_por_metodo)
-from opciones.griegas import (Delta_c, Theta, Gamma, Vega, Rho, Theta_Diaria, Delta_B76, Theta_B76, Gamma_B76, Vega_B76,
+from opciones.griegas import (Delta, Theta, Gamma, Vega, Rho, Theta_Diaria, Delta_B76, Theta_B76, Gamma_B76, Vega_B76,
                               Rho_B76, Delta_A_div, Gamma_A_div, Theta_A_div, Vega_A_div, Rho_A_div)
 
 import numpy as np
@@ -84,7 +84,7 @@ class OpcionEuropea():
         ----------
         tipo : 'call' o 'put'.
         """
-        return Delta_c(self.s0, self.k, self.t, self.r, self.sigma, tipo)
+        return Delta(self.s0, self.k, self.t, self.r, self.sigma, tipo)
 
     def gamma(self):
         """Gamma de la opción (igual para call y put)."""
@@ -183,7 +183,7 @@ class OpcionEuropeaDiv():
         ----------
         tipo : 'call' o 'put'.
         """
-        return Delta_c(self.s0_ajustado, self.k, self.t, self.r, self.sigma, tipo)
+        return Delta(self.s0_ajustado, self.k, self.t, self.r, self.sigma, tipo)
 
     def gamma(self):
         """Gamma de la opción, usando s0 ajustado por dividendos."""
@@ -267,7 +267,7 @@ class OpcionForex():
 
     # _____________________ LETRAS GRIEGAS _________________________________
     """
-    PENDIENTE: las funciones Delta_c, Gamma, Theta y Vega del módulo
+    PENDIENTE: las funciones Delta, Gamma, Theta y Vega del módulo
     griegas.py fueron derivadas para Black-Scholes estándar (una sola
     tasa r), no para Garman-Kohlhagen (dos tasas rd, rf). Reutilizarlas
     aquí tal cual daría resultados matemáticamente incorrectos (por

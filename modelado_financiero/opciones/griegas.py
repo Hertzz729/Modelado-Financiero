@@ -36,7 +36,7 @@ MatrizComo: TypeAlias = Sequence[Sequence[float]]
 
 # ================Letras griegas para opciones (Black-Scholes estándar)======================
 
-def Delta_c(s0: float, k: float, t: float, r: float, sigma: float, tipo='call'):
+def Delta(s0: float, k: float, t: float, r: float, sigma: float, tipo='call'):
     """
     Delta de una opción europea bajo Black-Scholes estándar (sin dividendos).
 

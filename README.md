@@ -343,7 +343,7 @@ Consulta el archivo **LICENSE** para más información.
 
 # 👨‍🌾 Autor
 
-**Jerson Gallardo**
+**Jerson**
 
 Matemático Algorítmico  
 Escuela Superior de Física y Matemáticas (ESFM-IPN)

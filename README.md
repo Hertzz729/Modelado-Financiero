@@ -3,7 +3,7 @@
 </p>
 
 <h1 align="center">
-📈 Librería de Finanzas Cuantitativas
+ Librería de Finanzas Cuantitativas
 </h1>
 
 <p align="center">
@@ -32,7 +32,7 @@ Actualmente la librería incorpora modelos para opciones sobre acciones, futuros
 
 ---
 
-# 📦 Instalación
+# (⊃｡•́‿•̀｡)⊃  Instalación
 
 Instalación directa desde GitHub:
 
@@ -75,43 +75,43 @@ Ejemplos_de_Uso/
 
 ---
 
-# ✨ Características
+# ✧ Características
 
 ## Derivados Financieros
 
-- ✅ Modelo Black-Scholes
-- ✅ Modelo Black-76
-- ✅ Modelo de Garman-Kohlhagen (Forex)
-- ✅ Opciones Europeas
-- ✅ Opciones Europeas con Dividendos Discretos
-- ✅ Opciones Americanas con Dividendos Discretos
-- ✅ Letras Griegas (Delta, Gamma, Theta, Vega y Rho)
+- ✓ Modelo Black-Scholes
+- ✓ Modelo Black-76
+- ✓ Modelo de Garman-Kohlhagen (Forex)
+- ✓ Opciones Europeas
+- ✓ Opciones Europeas con Dividendos Discretos
+- ✓ Opciones Americanas con Dividendos Discretos
+- ✓ Letras Griegas (Delta, Gamma, Theta, Vega y Rho)
 
 ## Volatilidad
 
-- ✅ Volatilidad Implícita
-- ✅ Método de Newton-Raphson
-- ✅ Método de la Secante
-- ✅ Método de Bisección
-- ✅ Sonrisa de Volatilidad
+- ✓ Volatilidad Implícita
+- ✓ Método de Newton-Raphson
+- ✓ Método de la Secante
+- ✓ Método de Bisección
+- ✓ Sonrisa de Volatilidad
 
 ## Gestión de Riesgo
 
-- ✅ Volatilidad de Portafolio
-- ✅ VaR Paramétrico
-- ✅ VaR Histórico
-- ✅ VaR Monte Carlo
+- ✓ Volatilidad de Portafolio
+- ✓ VaR Paramétrico
+- ✓ VaR Histórico
+- ✓ VaR Monte Carlo
 
 ## Arquitectura
 
-- ✅ Orientada a Objetos
-- ✅ API Funcional
-- ✅ Compatible con NumPy
-- ✅ Compatible con Google Colab
+- ✓ Orientada a Objetos
+- ✓ API Funcional
+- ✓ Compatible con NumPy
+- ✓ Compatible con Google Colab
 
 ---
 
-# 📂 Estructura del Proyecto
+# (•⩊•) Estructura del Proyecto
 
 ```text
 modelado_financiero/
@@ -136,7 +136,7 @@ modelado_financiero/
 
 ---
 
-# 📚 Modelos Implementados
+# ☰ Modelos Implementados
 
 | Categoría | Modelo |
 |------------|------------|
@@ -156,7 +156,7 @@ modelado_financiero/
 
 ---
 
-# 🔧 API Pública
+# ◉ API Pública
 
 ## Opciones
 
@@ -194,7 +194,7 @@ from modelado_financiero import (
 
 ---
 
-# 📊 Arquitectura
+# ⌘ Arquitectura
 
 ```mermaid
 graph TD
@@ -232,7 +232,7 @@ D --> O[Sonrisa de Volatilidad]
 
 ---
 
-# 📈 Ejemplos
+# ↗ Ejemplos
 
 ## Sonrisa de Volatilidad
 
@@ -257,7 +257,7 @@ Entre ellos se encuentran:
 
 ---
 
-# 🎯 Objetivo del Proyecto
+# ◎ Objetivo del Proyecto
 
 El objetivo de esta biblioteca es proporcionar implementaciones claras, documentadas y reproducibles de los modelos clásicos utilizados en finanzas cuantitativas.
 
@@ -265,7 +265,7 @@ La librería está orientada tanto a estudiantes de ingeniería financiera, mate
 
 ---
 
-# 📌 Aplicaciones
+# ⊡ Aplicaciones
 
 La librería puede utilizarse para:
 
@@ -280,7 +280,7 @@ La librería puede utilizarse para:
 
 ---
 
-# 📚 Referencias
+# ※ Referencias
 
 Los modelos implementados están basados principalmente en:
 
@@ -305,7 +305,7 @@ Las funcionalidades principales de valuación de derivados, volatilidad implíci
 
 # 🛣 Roadmap
 
-## ✔ Implementado
+##  Implementado
 
 - [x] Black-Scholes
 - [x] Black-76
@@ -318,7 +318,7 @@ Las funcionalidades principales de valuación de derivados, volatilidad implíci
 - [x] Volatilidad Implícita
 - [x] Sonrisa de Volatilidad
 
-## 🚧 En Desarrollo
+##  En Desarrollo
 
 - [ ] Exposición pública del modelo Binomial CRR
 - [ ] Barone-Adesi & Whaley
@@ -333,7 +333,7 @@ Las funcionalidades principales de valuación de derivados, volatilidad implíci
 
 ---
 
-# 📄 Licencia
+# § Licencia
 
 Este proyecto se distribuye bajo la licencia **MIT**.
 
@@ -341,7 +341,7 @@ Consulta el archivo **LICENSE** para más información.
 
 ---
 
-# 👨‍🌾 Autor
+#  Autor
 
 **Jerson**
 

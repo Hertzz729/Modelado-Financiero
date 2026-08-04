@@ -48,21 +48,31 @@ def Black_Scholes(s0: float, k: float, t: float, r: float, sigma: float, tipo='c
     Regresa
     -------
     float : precio de la opción.
+
+    Lanza
+    -----
+    ValueError          : si tipo no es 'call' ni 'put'.
     """
+    # Guarda
+    if t <= 0 or sigma <=0 or s0 <=0:
+        return max(s0-k,0) if tipo.lower() == 'call' else max(k-s0,0)
+
     # calculamos d1 y d2
     d1 = (np.log(s0/k) + (r+sigma**2/2)*t)/(sigma*np.sqrt(t))
     d2 = d1-sigma*np.sqrt(t)  # d2 támbien se puede calcular así
 
     # calculos de el precio de el contrato según el tipo
-    if tipo == 'call':
+    if tipo.lower() == 'call':
         nor_d1 = norm.cdf(d1)
         nor_d2 = norm.cdf(d2)
         return s0 * nor_d1 - k * np.exp(-r*t) * nor_d2
-    else:
-        # usamos la propiedad de simetria de la normal para calcular N(-d1)= -N(d1) y N(-d2) = -N(d2)
+    elif tipo.lower() == 'put':
+        # usamos la propiedad de simetria de la normal para calcular N(-d1)= 1-N(d1) y N(-d2) = 1-N(d2)
         nor_d1 = 1-norm.cdf(d1)
         nor_d2 = 1-norm.cdf(d2)
         return k * nor_d2 * np.exp(-r*t) - s0 * nor_d1
+    else:
+        raise ValueError("tipo debe ser 'call' o 'put'")
 
 
 def d1_d2(s0: float, k: float, r: float, t: float, sigma: float):
@@ -73,6 +83,9 @@ def d1_d2(s0: float, k: float, r: float, t: float, sigma: float):
     -------
     (d1, d2) : tuple[float, float]
     """
+    if t <= 0 or sigma <= 0 or s0 <= 0:
+        return np.nan, np.nan
+
     d1 = (np.log(s0/k) + (r+sigma**2/2)*t)/(sigma*np.sqrt(t))
     d2 = d1-sigma*np.sqrt(t)  # d2 támbien se puede calcular así
     return d1, d2
@@ -83,7 +96,7 @@ def d1_d2(s0: float, k: float, r: float, t: float, sigma: float):
 def ajuste_s0(s0: float, r: float, t: float, dividendos: ArregloComo, t_dividendos: ArregloComo):
     """
     Ajusta el precio spot S0 restando el valor presente de los dividendos
-    discretos que se pagan antes del tiempo t. Este es el método estándar
+    discretos que se pagan antes o igual del tiempo t. Este es el método estándar
     para adaptar Black-Scholes (pensado para acciones sin dividendos) al
     caso de dividendos discretos conocidos.
 
@@ -104,7 +117,7 @@ def ajuste_s0(s0: float, r: float, t: float, dividendos: ArregloComo, t_dividend
     PV_d = 0
     for i in range(n_dividendos):
         # solo restamos los dividendos antes de la fecha de ejercicio
-        if (t > t_dividendos[i]):
+        if (t >= t_dividendos[i]>0):
             PV = dividendos[i] * np.exp(-r * t_dividendos[i])
             PV_d += PV
     s0_ajustado = s0 - PV_d
@@ -129,6 +142,10 @@ def Black_76(F0: float, k: float, t: float, r: float, sigma: float, tipo='call')
     Regresa
     -------
     float : precio de la opción.
+
+    Lanza
+    -----
+    ValueError          : si tipo no es 'call' ni 'put'.
     """
     d1 = (np.log(F0/k) + 0.5*sigma**2*t)/(sigma*np.sqrt(t))
     d2 = d1 - sigma*np.sqrt(t)
@@ -192,11 +209,15 @@ def Black_Scholes_Fx(s0: float, k: float, t: float, sigma: float, rd: float, rf:
 
     Regresa
     -------
-    (precio, d1, d2) : tuple[float, float, float]
+    precio : float
+
+    Lanza
+    ------
+    ValueError          : si tipo no es 'call' ni 'put'.
     """
     # Evitar división por cero si t es 0
     if t <= 0:
-        return max(s0 - k, 0) if tipo.lower() == "call" else max(k - s0, 0), 0, 0
+        return max(s0 - k, 0) if tipo.lower() == "call" else max(k - s0, 0)
 
     # Cálculo de d1 y d2
     d1, d2 = Fx_d1_d2(s0, k, t, sigma, rd, rf, tipo)
@@ -221,25 +242,45 @@ def condicion_ejercicio_anticipado(k: float, t: float, r: float, dividendos: Arr
     hace potencialmente óptimo el ejercicio anticipado de un call
     americano justo antes de ese pago de dividendo:
 
-        d_i > K * (1 - exp(-r * (T - t_i)))
+        d_i > K * (1 - exp(-r * (t_(i+1) - t_i)))
+
+    donde t_(i+1) es la siguiente fecha ex-dividendo (o T, el vencimiento,
+    si el dividendo i es el último antes de T). Esta es la condición
+    rigurosa para múltiples dividendos discretos: cada intervalo se compara
+    contra su propia duración hasta el siguiente evento relevante, no
+    contra el tiempo total al vencimiento. Usar T en todos los casos
+    sobreestima el límite para dividendos intermedios y puede descartar
+    ejercicios anticipados que sí serían óptimos.
+
+    IMPORTANTE: se asume que `dividendos` y `t_dividendos` están ordenados
+    de forma ascendente por tiempo de pago.
+
+    Parámetros
+    ----------
+    k            : Precio de ejercicio (strike).
+    t            : Tiempo al vencimiento, en años (T).
+    r            : Tasa libre de riesgo anualizada.
+    dividendos   : Montos de cada dividendo, ordenados por fecha de pago.
+    t_dividendos : Tiempos (en años) en que se paga cada dividendo,
+                   ordenados ascendentemente.
 
     Regresa
     -------
-    list[int] : 1 si la condición se cumple para el dividendo i, 0 si no.
+    np.ndarray[int] : 1 si la condición se cumple para el dividendo i, 0 si no.
     """
-    renunciar = []
-    for i, time in enumerate(t_dividendos):
-        # Condición técnica para que el ejercicio anticipado sea potencialmente óptimo
-        limite = k * (1 - np.exp(-r * (t - time)))
-        if dividendos[i] > limite:
-            renunciar.append(1)
-        else:
-            renunciar.append(0)
+    dividendos = np.asarray(dividendos, dtype=float)
+    t_dividendos = np.asarray(t_dividendos, dtype=float)
+
+    # Vector de "siguientes" tiempos: shift de t_dividendos, con T al final
+    siguientes = np.append(t_dividendos[1:], t)
+
+    limite = k * (1 - np.exp(-r * (siguientes - t_dividendos)))
+    renunciar = (dividendos > limite).astype(int)
     return renunciar
 
 
 def Aproximacion_Black(s0: float, k: float, t: float, r: float, sigma: float, dividendos: ArregloComo,
-                        t_dividendos: ArregloComo, tipo='Call'):
+                        t_dividendos: ArregloComo, tipo='call'):
     """
     Aproxima el precio de un CALL americano con dividendos discretos,
     evaluando el máximo entre:
@@ -248,6 +289,18 @@ def Aproximacion_Black(s0: float, k: float, t: float, r: float, sigma: float, di
       2) el precio de ejercicio anticipado justo antes de cada dividendo
          para el que la condición técnica de ejercicio anticipado se
          cumple.
+
+    Para cada candidato de ejercicio anticipado en t_i, S0 se ajusta
+    restando únicamente el valor presente de los dividendos pagados
+    ANTES de t_i (dividendos con t_dividendos[j] < t_i). El dividendo D_i
+    que se está evaluando NO se resta, porque la valuación en ese instante
+    corresponde al precio cum-dividendo (justo antes de que el dividendo
+    se pague), que es el valor relevante para decidir si conviene ejercer
+    en ese momento.
+
+    IMPORTANTE: se asume que `dividendos` y `t_dividendos` están ordenados
+    de forma ascendente por tiempo de pago (mismo supuesto que usa
+    `condicion_ejercicio_anticipado`).
 
     NOTA IMPORTANTE: este resultado teórico (candidatos finitos a evaluar)
     solo es válido para CALLS americanos. Para un PUT americano no existe
@@ -259,28 +312,46 @@ def Aproximacion_Black(s0: float, k: float, t: float, r: float, sigma: float, di
     Regresa
     -------
     float : precio aproximado del call americano.
-    str   : si tipo='put', regresa un mensaje indicando usar el árbol binomial.
+
+    Lanza
+    -----
+    NotImplementedError : si tipo='put', indica usar el árbol binomial.
+    ValueError          : si tipo no es 'call' ni 'put'.
     """
     if tipo.lower() == 'put':
-        return "Use modelos binomiales para Puts Americanos con dividendos."
+        raise NotImplementedError('Use modelos binomiales para Puts Americanos con dividendos.')
 
-    # Europea al vencimiento final T
-    s_ajustado_final = ajuste_s0(s0, r, t, dividendos, t_dividendos)
-    precio_vencimiento = Black_Scholes(s_ajustado_final, k, t, r, sigma, tipo)
+    elif tipo.lower() == 'call':
+        # conversion a np.asrray (nesesaria para las operaciones vectorizadas)
+        dividendos = np.asarray(dividendos, dtype=float)
+        t_dividendos = np.asarray(t_dividendos, dtype=float)
 
-    candidatos = [precio_vencimiento]
-    condiciones = condicion_ejercicio_anticipado(k, t, r, dividendos, t_dividendos)
+        # Europea al vencimiento final T
+        s_ajustado_final = ajuste_s0(s0, r, t, dividendos, t_dividendos)
+        precio_vencimiento = Black_Scholes(s_ajustado_final, k, t, r, sigma, tipo)
 
-    # Ejercicio anticipado justo antes de cada dividendo i
-    for i, td in enumerate(t_dividendos):
-        if td < t and condiciones[i] == 1:
-            # Se ajusta S0 solo por dividendos previos al tiempo td
-            s_ajustado_ti = ajuste_s0(s0, r, td, dividendos, t_dividendos)
+        candidatos = [precio_vencimiento]
+        condiciones = condicion_ejercicio_anticipado(k, t, r, dividendos, t_dividendos)
+
+        # --- Máscara vectorizada de candidatos válidos: td < T y condición cumplida ---
+        validos = (t_dividendos < t) & (condiciones == 1)
+        indices_validos = np.nonzero(validos)[0]
+
+        for i in indices_validos:
+            td = t_dividendos[i]
+            # Máscara booleana de dividendos estrictamente previos a td
+            mask_previos = t_dividendos < td
+            divs_previos = dividendos[mask_previos]
+            t_divs_previos = t_dividendos[mask_previos]
+
+            s_ajustado_ti = ajuste_s0(s0, r, td, divs_previos, t_divs_previos)
             precio_ti = Black_Scholes(s_ajustado_ti, k, td, r, sigma, tipo)
             candidatos.append(precio_ti)
 
-    return max(candidatos)
+        return max(candidatos)
 
+    else:
+        raise ValueError("tipo debe ser 'call' o 'put'")
 
 # ----------------------------- FUNCIONES PARA EL ARBOL BINOMIAL OPCIONES AMERICANAS CON Y SIN DIVIDENDOS --------------------
 
@@ -327,10 +398,7 @@ def ArbolBinomial_crr(s0: float, k: float, r: float, t: float, n: int, u: float,
     con o sin dividendos discretos, usando el árbol binomial de
     Cox-Ross-Rubinstein (CRR).
 
-    Los dividendos se modelan como montos absolutos conocidos: en el paso
-    del árbol más cercano a cada t_dividendo, se resta el monto del
-    dividendo al precio del nodo ya calculado con u/d (modelo de
-    "dividendo absoluto conocido" o escrowed dividend).
+
 
     Parámetros
     ----------
@@ -376,7 +444,8 @@ def ArbolBinomial_crr(s0: float, k: float, r: float, t: float, n: int, u: float,
     if not (0 < d < u):
         raise ValueError(f"Se requiere 0 < d < u, se recibió d={d}, u={u}")
 
-    if tipo.lower() not in ('call', 'put'):
+    tipo = tipo.lower()
+    if tipo not in ('call', 'put'):
         raise ValueError(f"'tipo' debe ser 'call' o 'put', se recibió: {tipo}")
 
     # Convertimos a arreglos de numpy para validar tamaños y valores
@@ -393,6 +462,14 @@ def ArbolBinomial_crr(s0: float, k: float, r: float, t: float, n: int, u: float,
     if np.any(dividendo < 0):
         raise ValueError("Los montos en 'dividendo' no pueden ser negativos")
 
+    if np.any(t_dividendo < 0):
+        raise ValueError("Los tiempos en 't_dividendo' no pueden ser negativos")
+
+    # Filtrar dividendos relevantes: mismo criterio que ajuste_s0 (0 < t_div <= t)
+    mask_relevante = (t_dividendo > 0) & (t_dividendo <= t)
+    dividendo = dividendo[mask_relevante]
+    t_dividendo = t_dividendo[mask_relevante]
+
     dt = t / n
     desc = np.exp(-r * dt)
     p = prob_neutral_riesgo(r, t, n, d, u)
@@ -404,51 +481,49 @@ def ArbolBinomial_crr(s0: float, k: float, r: float, t: float, n: int, u: float,
         )
 
     # ------------------------------------------------------------------
-    # Mapear cada dividendo al paso (columna) del árbol donde se aplica
+    # Escrowed dividend model: ajustar S0 restando el VP de TODOS los
+    # dividendos relevantes (igual que ajuste_s0)
     # ------------------------------------------------------------------
-    # Redondeamos el tiempo del dividendo al paso más cercano del árbol.
-    # Si dos dividendos caen en el mismo paso, se suman.
-    dividendos_por_paso = np.zeros(n + 1)
-    for div, t_div in zip(dividendo, t_dividendo):
-        paso = int(round(t_div / dt))
-        paso = min(max(paso, 0), n)  # por seguridad, acotar al rango válido
-        if div > s0:
-            raise ValueError(
-                f"El dividendo ({div}) no puede ser mayor que 's0' ({s0}); "
-                "revisa las unidades/monto ingresado."
-            )
-        dividendos_por_paso[paso] += div
+    pv_div_total = np.sum(dividendo * np.exp(-r * t_dividendo))
+    s0_star = s0 - pv_div_total
 
-    # ------------------------------------------------------------------
-    # Matrices de precios (S) y valor de la opción (V)
-    # ------------------------------------------------------------------
-    S = np.zeros((n + 1, n + 1))
-    V = np.zeros((n + 1, n + 1))
-
-    # Paso 0: si hay dividendo justo en t=0, se resta de inmediato
-    S[0, 0] = s0 - dividendos_por_paso[0]
-    if S[0, 0] <= 0:
+    if s0_star <= 0:
         raise ValueError(
-            "El precio del subyacente se volvió no positivo tras restar "
-            "el dividendo en el paso 0. Revisa los montos ingresados."
+            f"El valor presente de los dividendos ({pv_div_total:.4f}) es "
+            f"mayor o igual a s0 ({s0}); revisa los montos ingresados."
         )
 
-    for j in range(1, n + 1):
-        S[0, j] = S[0, j - 1] * u - dividendos_por_paso[j]
-        for i in range(1, j + 1):
-            S[i, j] = S[i - 1, j - 1] * d - dividendos_por_paso[j]
+    # ------------------------------------------------------------------
+    # Árbol multiplicativo PURO sobre S* (recombina exactamente)
+    # ------------------------------------------------------------------
+    S_star = np.zeros((n + 1, n + 1))
+    for j in range(n + 1):
+        for i in range(j + 1):
+            S_star[i, j] = s0_star * (u ** (j - i)) * (d ** i)
 
-        if np.any(S[: j + 1, j] <= 0):
-            raise ValueError(
-                f"Un dividendo demasiado grande en el paso {j} generó "
-                "precios del subyacente no positivos. Revisa los montos."
+    # ------------------------------------------------------------------
+    # VP de dividendos remanentes (no pagados aún) en cada columna j.
+    # Depende solo de j (tiempo), no de i (camino) -> no rompe recombinación.
+    # ------------------------------------------------------------------
+    tiempos_columna = np.array([j * dt for j in range(n + 1)])
+    div_remanente_pv = np.zeros(n + 1)
+    for j in range(n + 1):
+        tj = tiempos_columna[j]
+        pendientes = t_dividendo > tj
+        if np.any(pendientes):
+            div_remanente_pv[j] = np.sum(
+                dividendo[pendientes] * np.exp(-r * (t_dividendo[pendientes] - tj))
             )
 
+    # Precio "real" del subyacente en cada nodo: S* + dividendos remanentes
+    S = S_star + div_remanente_pv[np.newaxis, :]
+
     # ------------------------------------------------------------------
-    # Payoff en el vencimiento
+    # Payoff en el vencimiento (columna n: no quedan dividendos remanentes)
     # ------------------------------------------------------------------
+    V = np.zeros((n + 1, n + 1))
     for i in range(n + 1):
-        if tipo.lower() == 'call':
+        if tipo == 'call':
             V[i, n] = max(S[i, n] - k, 0.0)
         else:
             V[i, n] = max(k - S[i, n], 0.0)
@@ -463,7 +538,7 @@ def ArbolBinomial_crr(s0: float, k: float, r: float, t: float, n: int, u: float,
             v_continuacion = desc * (p * v_arriba + (1.0 - p) * v_abajo)
 
             if es_americana:
-                if tipo.lower() == 'call':
+                if tipo == 'call':
                     v_ejercicio = max(S[i, j] - k, 0.0)
                 else:
                     v_ejercicio = max(k - S[i, j], 0.0)

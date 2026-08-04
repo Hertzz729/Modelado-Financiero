@@ -9,6 +9,23 @@ from .opciones import (
     OpcionForex
 )
 
+from .opciones.precios import  (
+    Black_Scholes,
+    d1_d2,
+    ajuste_s0,
+
+    Black_76,
+
+    Black_Scholes_Fx,
+    Fx_d1_d2,
+
+    Aproximacion_Black,
+
+    ArbolBinomial_crr,
+    graficar_arbol_bin
+)
+
+
 from .opciones.griegas import (
     Delta,
     Gamma,
@@ -29,6 +46,7 @@ from .opciones.griegas import (
     Rho_B76,
 
 )
+
 from .riesgo import (
     VaR_parametrico,
     VaR_historico,

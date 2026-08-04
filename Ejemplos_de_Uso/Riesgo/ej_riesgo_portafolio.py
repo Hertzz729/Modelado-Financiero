@@ -42,7 +42,7 @@ var_1dia_95 = VaR_parametrico(
     portafolio_valor=valor_portafolio,
     mu=mu_diario_p,
     sigma=sigma_diaria_p,
-    nivel_confianza=nivel_confianza
+    nivel_confianza=nivel_confianza, distribucion='lognormal'
 )
 
 print("-" * 60)

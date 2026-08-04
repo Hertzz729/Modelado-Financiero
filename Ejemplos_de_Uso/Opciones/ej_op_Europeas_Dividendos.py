@@ -10,7 +10,6 @@ sigma = 0.2
 dividendos = [0.2, 0.3, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 t_dividendos = [1/12, 2/12, 3/12, 4/12, 5/12, 6/12, 7/12, 8/12, 9/12]
 
-# Orden correcto de argumentos: s0, k, t, r, sigma, dividendos, t_dividendos
 europea_dividendos = OpcionEuropeaDiv(s0, k, t, r, sigma, dividendos, t_dividendos)
 
 d1_div, d2_div = europea_dividendos.d1d2

@@ -1,7 +1,7 @@
 print('============================================\nOPCIONES CON AMERICANAS CON DIVIDENDOS DISCRETOS\n============================================')
 
 from opciones.clases_opciones import OpcionAmericanaDiv
-
+import numpy as np
 """
 Modificar el metodo de aproximación por el metodo Bjerksund-Stensland
 """
@@ -11,6 +11,7 @@ k = 80
 r = 0.10
 t = 6/12
 sigma = 0.2
+# Nota: Se puede trabajar con np.array en lugar de listas
 dividendos = [0.2, 0.3, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
 t_dividendos = [1/12, 2/12, 3/12, 4/12, 5/12, 6/12, 7/12, 8/12, 9/12]
 

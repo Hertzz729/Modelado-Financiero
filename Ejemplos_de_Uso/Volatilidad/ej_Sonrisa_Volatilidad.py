@@ -1,6 +1,6 @@
 import numpy as np
 from opciones.precios import Black_Scholes
-from volatilidad.volatilidad import sonrisa_volatilidad
+from modelado_financiero.volatilidad import sonrisa_volatilidad
 
 s0, t, r = 100, 0.5, 0.05
 strikes = np.array([80, 90, 100, 110, 120]) # lista de strikes

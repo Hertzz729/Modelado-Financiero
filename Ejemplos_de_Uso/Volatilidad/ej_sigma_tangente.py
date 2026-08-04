@@ -1,5 +1,5 @@
 from opciones.precios import Black_Scholes
-from volatilidad.volatilidad import estimacion_sigma_tangente
+from modelado_financiero.volatilidad import estimacion_sigma_tangente
 
 s0 = 100
 k = 110

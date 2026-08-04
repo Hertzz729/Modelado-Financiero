@@ -1,34 +1,25 @@
 """
 griegas.py
 ==========
-Módulo de letras griegas para las distintas familias de opciones del
-proyecto:
 
-- Griegas analíticas de Black-Scholes estándar (sin dividendos):
-  Delta, Theta, Gamma, Vega y Rho. Delta y Theta calculan tanto call
-  como put mediante el parámetro `tipo`.
-- Theta universal por diferencias finitas para opciones europeas con o
-  sin dividendos discretos.
-- Griegas analíticas de Black-76 (opciones sobre futuros): Delta, Theta,
-  Gamma, Vega y Rho. Delta y Theta calculan tanto call como put mediante
-  el parámetro `tipo`.
-- Griegas de opciones americanas con dividendos discretos (incluyendo
-  Rho), calculadas por diferencias finitas sobre `_precio_por_metodo`
-  (que a su vez decide internamente si usar Black aproximado o el árbol
-  binomial CRR).
+Módulo de letras griegas para:
 
-Nota general: a diferencia de las griegas analíticas de Black-Scholes,
-las griegas de opciones americanas con dividendos NO tienen fórmula
-cerrada, por lo que se aproximan numéricamente perturbando cada
-parámetro una cantidad pequeña 'h' y evaluando la diferencia en el
-precio resultante.
+- Black-Scholes estándar (sin dividendos).
+- Opciones europeas con dividendos discretos (Theta diaria).
+- Black-76 (opciones sobre futuros/forwards).
+- Opciones americanas con dividendos discretos.
+
+Las griegas de Black-Scholes y Black-76 se calculan mediante fórmulas
+analíticas. Las griegas de opciones americanas con dividendos se
+aproximan mediante diferencias finitas sobre el precio calculado por
+`_precio_por_metodo`.
 """
 
 from typing import Sequence, TypeAlias
 import numpy as np
 from scipy.stats import norm
 
-from .precios import _precio_por_metodo, Black_76
+from .precios import _precio_por_metodo, Black_76, ajuste_s0
 
 ArregloComo: TypeAlias = Sequence[float]
 MatrizComo: TypeAlias = Sequence[Sequence[float]]
@@ -38,11 +29,16 @@ MatrizComo: TypeAlias = Sequence[Sequence[float]]
 
 def Delta(s0: float, k: float, t: float, r: float, sigma: float, tipo='call'):
     """
-    Delta de una opción europea bajo Black-Scholes estándar (sin dividendos).
+    Delta analítica de Black-Scholes estándar (sin dividendos).
 
     Parámetros
     ----------
-    tipo : 'call' o 'put'.
+    s0    : Precio spot del subyacente.
+    k     : Precio de ejercicio (strike).
+    t     : Tiempo al vencimiento, en años.
+    r     : Tasa libre de riesgo anualizada.
+    sigma : Volatilidad anualizada.
+    tipo  : 'call' o 'put'.
 
     Regresa
     -------
@@ -56,23 +52,42 @@ def Delta(s0: float, k: float, t: float, r: float, sigma: float, tipo='call'):
         return norm.cdf(d1) - 1
 
 
-def Theta(s0: float, k: float, t: float, sigma: float, r: float, d1: float, d2: float, tipo="call"):
+def Theta(s0: float, k: float, t: float, r: float, sigma: float, d1: float, d2: float, tipo="call"):
     """
     Theta analítica de Black-Scholes estándar (sin dividendos), anualizada.
+
+    Parámetros
+    ----------
+    s0    : Precio spot actual del subyacente.
+    k     : Precio de ejercicio (strike).
+    t     : Tiempo al vencimiento, en años.
+    r     : Tasa libre de riesgo anualizada.
+    sigma : volatilidad anualizada del subyacente.
+    d1,d2 : d1 y d2 de Black-Scholes, calculados con los mismos s0,k,t,r,sigma.
+    tipo  : 'call' o 'put'.
 
     Regresa
     -------
     float : Theta (tasa de cambio del precio respecto al tiempo).
     """
-    if tipo == "call":
+    if tipo.lower() == "call":
         return - (s0 * 1/np.sqrt(2 * np.pi) * sigma * np.exp(-d1**2/2)) / (2*np.sqrt(t)) - r*k*np.exp(-r*t)*norm.cdf(d2)
-    else:
+    elif tipo.lower() == "put":
         return - (s0 * 1/np.sqrt(2 * np.pi) * sigma * np.exp(-d1**2/2)) / (2*np.sqrt(t)) + r*k*np.exp(-r*t)*norm.cdf(-d2)
+    else:
+        raise ValueError("tipo debe ser 'call' or 'put'")
 
 
 def Gamma(s0: float, sigma: float, t: float, d1: float):
     """
     Gamma analítica de Black-Scholes estándar (igual para call y put).
+
+    Parámetros
+    ----------
+    s0    : Precio spot del subyacente.
+    sigma : Volatilidad anualizada.
+    t     : Tiempo al vencimiento, en años.
+    d1    : Parámetro d1 de Black-Scholes.
 
     Regresa
     -------
@@ -84,6 +99,13 @@ def Gamma(s0: float, sigma: float, t: float, d1: float):
 def Vega(s0: float, t: float, sigma: float, d1: float):
     """
     Vega analítica de Black-Scholes estándar (igual para call y put).
+
+    Parámetros
+    ----------
+    s0    : Precio spot del subyacente.
+    t     : Tiempo al vencimiento, en años.
+    sigma : Volatilidad anualizada.
+    d1    : Parámetro d1 de Black-Scholes.
 
     Regresa
     -------
@@ -123,14 +145,32 @@ def Theta_Diaria(s0: float, k: float, t: float, sigma: float, r: float,
     mediante el método numérico de diferencias finitas.
     Funciona de forma exacta tanto para opciones CON como SIN dividendos.
 
+    Convención de día: se usa 1/365 (día calendario), NO 1/252 (día
+    hábil). Esta convención es distinta a la usada en `Theta_A_div`
+    (opciones americanas con dividendos), que usa 1/252. Los resultados
+    de ambas funciones NO son directamente comparables entre sí sin
+    ajustar por esta diferencia.
+
     IMPORTANTE: 's0' debe pasarse SIN ajustar por dividendos; esta función
     ya realiza internamente el ajuste de valor presente de los dividendos
-    tanto para "hoy" como para "mañana". Pasar un s0 ya ajustado
-    provocaría restar el valor presente de los dividendos dos veces.
+    (vía `ajuste_s0`) tanto para "hoy" como para "mañana". Pasar un s0 ya
+    ajustado provocaría restar el valor presente de los dividendos dos veces.
+
+    Parámetros
+    ----------
+    s0            : Precio spot del subyacente.
+    k             : Precio de ejercicio (strike).
+    t             : Tiempo al vencimiento, en años.
+    sigma         : Volatilidad anualizada.
+    r             : Tasa libre de riesgo anualizada.
+    dividendos    : Dividendos discretos.
+    t_dividendos  : Fechas de pago de dividendos, en años.
+    tipo          : 'call' o 'put'.
 
     Regresa
     -------
     float : Theta diaria (precio de mañana menos precio de hoy).
+            np.nan si el tiempo restante es menor o igual a un día.
     """
     if dividendos is None:
         dividendos = []
@@ -139,38 +179,28 @@ def Theta_Diaria(s0: float, k: float, t: float, sigma: float, r: float,
 
     dt = 1 / 365.0  # Un día en términos anuales
 
-    # --- 1. PRECIO HOY ---
-    # Calculamos el PV de dividendos hoy
-    pv_d_hoy = sum(
-        d * np.exp(-r * t_d)
-        for d, t_d in zip(dividendos, t_dividendos)
-        if t > t_d > 0
-    )
-    s0_adj_hoy = s0 - pv_d_hoy
+    if t <= dt:
+        return np.nan
 
-    # Calculamos Black-Scholes para hoy
+    # --- 1. PRECIO HOY ---
+    s0_adj_hoy = ajuste_s0(s0, r, t, dividendos, t_dividendos)
+
     d1_hoy = (np.log(s0_adj_hoy / k) + (r + 0.5 * sigma ** 2) * t) / (sigma * np.sqrt(t))
     d2_hoy = d1_hoy - sigma * np.sqrt(t)
 
     if tipo.lower() == "call":
         precio_hoy = s0_adj_hoy * norm.cdf(d1_hoy) - k * np.exp(-r * t) * norm.cdf(d2_hoy)
-    else:
+    elif tipo.lower() == "put":
         precio_hoy = k * np.exp(-r * t) * norm.cdf(-d2_hoy) - s0_adj_hoy * norm.cdf(-d1_hoy)
+    else:
+        raise ValueError("tipo debe ser 'call' o 'put'")
 
     # --- 2. PRECIO MAÑANA (Avanzamos 1 día) ---
     t_manana = t - dt
+    t_divs_manana = [td - dt for td in t_dividendos]
 
-    # Restamos 1 día a la fecha de cobro de cada dividendo
-    t_divs_manana = [t_d - dt for t_d in t_dividendos]
+    s0_adj_manana = ajuste_s0(s0, r, t_manana, dividendos, t_divs_manana)
 
-    pv_d_manana = sum(
-        d * np.exp(-r * t_d)
-        for d, t_d in zip(dividendos, t_divs_manana)
-        if t_manana > t_d > 0
-    )
-    s0_adj_manana = s0 - pv_d_manana
-
-    # Calculamos Black-Scholes para mañana
     d1_manana = (np.log(s0_adj_manana / k) + (r + 0.5 * sigma ** 2) * t_manana) / (sigma * np.sqrt(t_manana))
     d2_manana = d1_manana - sigma * np.sqrt(t_manana)
 
@@ -182,12 +212,18 @@ def Theta_Diaria(s0: float, k: float, t: float, sigma: float, r: float,
     # --- 3. THETA DIARIA ---
     return precio_manana - precio_hoy
 
-
 # =============== LETRAS GRIEGAS PARA BLACK-76 (FORWARDS) ================
 
 def Delta_B76(r: float, t: float, d1: float, tipo='call') -> float:
     """
     Delta analítica de Black-76 (opciones sobre futuros/forwards).
+
+    Parámetros
+    ----------
+    r     : Tasa libre de riesgo anualizada.
+    t     : Tiempo al vencimiento, en años.
+    d1    : Parámetro d1 de Black-76.
+    tipo  : 'call' o 'put'.
 
     Regresa
     -------
@@ -206,6 +242,14 @@ def Gamma_B76(f0: float, r: float, t: float, sigma: float, d1: float) -> float:
     """
     Gamma analítica de Black-76 (igual para call y put).
 
+    Parámetros
+    ----------
+    f0    : Precio forward o futuro.
+    r     : Tasa libre de riesgo anualizada.
+    t     : Tiempo al vencimiento, en años.
+    sigma : Volatilidad anualizada.
+    d1    : Parámetro d1 de Black-76.
+
     Regresa
     -------
     float : Gamma de la opción.
@@ -219,16 +263,19 @@ def Theta_B76(f0: float, k: float, t: float, r: float, sigma: float, d1: float, 
     Theta analítica de Black-76.
 
     NOTA: el precio de la opción se recalcula internamente (llamando a
-    Black_76) en vez de recibirse como argumento externo. Esto evita el
-    riesgo de que el usuario pase un 'precio' que no corresponda al
-    'tipo' indicado (por ejemplo, el precio de un call con tipo='put'),
-    lo cual daría una Theta silenciosamente incorrecta. La fórmula en sí
+    Black_76) en vez de recibirse como argumento externo. La fórmula en sí
     tiene la misma forma para call y put; lo único que cambia es qué
     precio (call o put) se usa.
 
     Parámetros
     ----------
-    tipo : 'call' o 'put'.
+    f0    : Precio forward o futuro.
+    k     : Precio de ejercicio (strike).
+    t     : Tiempo al vencimiento, en años.
+    r     : Tasa libre de riesgo anualizada.
+    sigma : Volatilidad anualizada.
+    d1    : Parámetro d1 de Black-76.
+    tipo  : 'call' o 'put'.
 
     Regresa
     -------
@@ -244,6 +291,13 @@ def Vega_B76(f0: float, r: float, t: float, d1: float) -> float:
     """
     Vega analítica de Black-76 (igual para call y put).
 
+    Parámetros
+    ----------
+    f0    : Precio forward o futuro.
+    r     : Tasa libre de riesgo anualizada.
+    t     : Tiempo al vencimiento, en años.
+    d1    : Parámetro d1 de Black-76.
+
     Regresa
     -------
     float : Vega de la opción.
@@ -254,16 +308,12 @@ def Vega_B76(f0: float, r: float, t: float, d1: float) -> float:
 
 def Rho_B76(t: float, precio: float) -> float:
     """
-    Rho analítica de Black-76: derivada del precio respecto a la tasa
-    libre de riesgo r.
+    Rho analítica de Black-76.
 
-    NOTA: en Black-76, d1 y d2 no dependen de r (a diferencia de
-    Black-Scholes estándar), porque F0 ya es un precio forward. Esto hace
-    que el precio sea V = exp(-r*t) * [bracket], donde [bracket] no
-    depende de r, y por lo tanto dV/dr = -t * V exactamente, tanto para
-    call como para put (aquí sí es seguro reutilizar 'precio' sin riesgo
-    de inconsistencia, porque la fórmula es una simple proporcionalidad,
-    no una rama condicional distinta por tipo).
+    En Black-76, el precio depende de la tasa libre de riesgo únicamente a
+    través del factor de descuento, por lo que:
+
+        Rho = -t * Precio
 
     Parámetros
     ----------
@@ -289,10 +339,23 @@ solo para calls) o del árbol binomial CRR (para puts, o cuando tiempo='d').
 """
 
 
-def Delta_A_div(s0, k, t, r, sigma, dividendos, t_dividendos, tipo='Call', tiempo='c', n=200):
+def Delta_A_div(s0:float, k:float, t:float, r:float, sigma:float, dividendos:ArregloComo, t_dividendos:ArregloComo, tipo='call', tiempo='c', n=200):
     """
     Delta de una opción americana con dividendos discretos, por diferencias
     finitas centrales sobre s0.
+
+    Parámetros
+    ----------
+    s0            : Precio spot del subyacente.
+    k             : Precio de ejercicio (strike).
+    t             : Tiempo al vencimiento, en años.
+    r             : Tasa libre de riesgo anualizada.
+    sigma         : Volatilidad anualizada.
+    dividendos    : Dividendos discretos.
+    t_dividendos  : Fechas de pago de dividendos.
+    tipo          : 'call' o 'put'.
+    tiempo        : Método de valoración ('c' o 'd').
+    n             : Número de pasos del árbol binomial.
 
     Regresa
     -------
@@ -304,23 +367,36 @@ def Delta_A_div(s0, k, t, r, sigma, dividendos, t_dividendos, tipo='Call', tiemp
     return (p_mas - p_menos) / (2 * h)
 
 
-def Gamma_A_div(s0, k, t, r, sigma, dividendos, t_dividendos, tipo='Call', tiempo='c', n=200):
+def Gamma_A_div(s0:float, k:float, t:float, r:float, sigma:float, dividendos:ArregloComo, t_dividendos:ArregloComo, tipo='call', tiempo='c', n=200):
     """
     Gamma de una opción americana con dividendos discretos, por diferencias
     finitas centrales de segundo orden sobre s0.
+
+    Parámetros
+    ----------
+    s0            : Precio spot del subyacente.
+    k             : Precio de ejercicio (strike).
+    t             : Tiempo al vencimiento, en años.
+    r             : Tasa libre de riesgo anualizada.
+    sigma         : Volatilidad anualizada.
+    dividendos    : Dividendos discretos.
+    t_dividendos  : Fechas de pago de dividendos.
+    tipo          : 'call' o 'put'.
+    tiempo        : Método de valoración ('c' o 'd').
+    n             : Número de pasos del árbol binomial.
 
     Regresa
     -------
     float : Gamma aproximada.
     """
-    h = 0.01 * s0
+    h = max(0.01 * s0, 1e-5)
     p_mas = _precio_por_metodo(s0 + h, k, t, r, sigma, dividendos, t_dividendos, tipo, tiempo, n)
     p = _precio_por_metodo(s0, k, t, r, sigma, dividendos, t_dividendos, tipo, tiempo, n)
     p_menos = _precio_por_metodo(s0 - h, k, t, r, sigma, dividendos, t_dividendos, tipo, tiempo, n)
     return (p_mas - 2 * p + p_menos) / (h ** 2)
 
 
-def Vega_A_div(s0, k, t, r, sigma, dividendos, t_dividendos, tipo='Call', tiempo='c', n=200):
+def Vega_A_div(s0:float, k:float, t:float, r:float, sigma:float, dividendos:ArregloComo, t_dividendos:ArregloComo, tipo='call', tiempo='c', n=200):
     """
     Vega de una opción americana con dividendos discretos, por diferencias
     finitas centrales sobre sigma.
@@ -328,6 +404,19 @@ def Vega_A_div(s0, k, t, r, sigma, dividendos, t_dividendos, tipo='Call', tiempo
     NOTA: perturbar sigma implica recalibrar u,d del árbol en cada
     evaluación (porque u,d dependen de sigma); esto ya ocurre
     automáticamente dentro de `_precio_por_metodo` -> `_resolver_u_d`.
+
+    Parámetros
+    ----------
+    s0            : Precio spot del subyacente.
+    k             : Precio de ejercicio (strike).
+    t             : Tiempo al vencimiento, en años.
+    r             : Tasa libre de riesgo anualizada.
+    sigma         : Volatilidad anualizada.
+    dividendos    : Dividendos discretos.
+    t_dividendos  : Fechas de pago de dividendos.
+    tipo          : 'call' o 'put'.
+    tiempo        : Método de valoración ('c' o 'd').
+    n             : Número de pasos del árbol binomial.
 
     Regresa
     -------
@@ -339,31 +428,57 @@ def Vega_A_div(s0, k, t, r, sigma, dividendos, t_dividendos, tipo='Call', tiempo
     return (p_mas - p_menos) / (2 * h)
 
 
-def Rho_A_div(s0, k, t, r, sigma, dividendos, t_dividendos, tipo='Call', tiempo='c', n=200):
+def Rho_A_div(s0:float, k:float, t:float, r:float, sigma:float, dividendos:ArregloComo, t_dividendos:ArregloComo, tipo='call', tiempo='c', n=200):
     """
     Rho de una opción americana con dividendos discretos, por diferencias
     finitas centrales sobre r.
+
+    Parámetros
+    ----------
+    s0            : Precio spot del subyacente.
+    k             : Precio de ejercicio (strike).
+    t             : Tiempo al vencimiento, en años.
+    r             : Tasa libre de riesgo anualizada.
+    sigma         : Volatilidad anualizada.
+    dividendos    : Dividendos discretos.
+    t_dividendos  : Fechas de pago de dividendos.
+    tipo          : 'call' o 'put'.
+    tiempo        : Método de valoración ('c' o 'd').
+    n             : Número de pasos del árbol binomial.
 
     Regresa
     -------
     float : Rho aproximada.
     """
-    h = max(0.0001, 1e-8)
+    h = max(0.0001 * abs(r), 1e-8)
     p_mas = _precio_por_metodo(s0, k, t, r + h, sigma, dividendos, t_dividendos, tipo, tiempo, n)
     p_menos = _precio_por_metodo(s0, k, t, r - h, sigma, dividendos, t_dividendos, tipo, tiempo, n)
     return (p_mas - p_menos) / (2 * h)
 
 
-def Theta_A_div(s0, k, t, r, sigma, dividendos, t_dividendos, tipo='Call', tiempo='c', n=200):
+def Theta_A_div(s0:float, k:float, t:float, r:float, sigma:float, dividendos:ArregloComo, t_dividendos:ArregloComo, tipo='call', tiempo='c', n=200):
     """
     Theta de una opción americana con dividendos discretos, por diferencia
     finita adelantada sobre t (comparando "hoy" contra "un día hábil
     después").
 
-    NOTA: perturbar t implica recalibrar u,d del árbol en cada evaluación
-    (porque dt = t/n depende de t); esto ya ocurre automáticamente dentro
-    de `_precio_por_metodo` -> `_resolver_u_d`, evitando así una
-    distorsión artificial de la volatilidad implícita del árbol.
+    Importante
+    ----------
+    Utiliza una convención de 1/252 (días hábiles), distinta de la empleada
+    por `Theta_Diaria`.
+
+    Parámetros
+    ----------
+    s0            : Precio spot del subyacente.
+    k             : Precio de ejercicio (strike).
+    t             : Tiempo al vencimiento, en años.
+    r             : Tasa libre de riesgo anualizada.
+    sigma         : Volatilidad anualizada.
+    dividendos    : Dividendos discretos.
+    t_dividendos  : Fechas de pago de dividendos.
+    tipo          : 'call' o 'put'.
+    tiempo        : Método de valoración ('c' o 'd').
+    n             : Número de pasos del árbol binomial.
 
     Regresa
     -------

@@ -151,8 +151,8 @@ class OpcionEuropeaDiv():
 
     @property
     def d1d2(self):
-        """Calcula (d1, d2) de Black-Scholes usando s0 SIN ajustar por dividendos."""
-        return d1_d2(self.s0, self.k, self.r, self.t, self.sigma)
+        """Calcula (d1, d2) de Black-Scholes usando s0 con ajustar por dividendos."""
+        return d1_d2(self.s0_ajustado, self.k, self.r, self.t, self.sigma)
 
     @property
     def s0_ajustado(self):
@@ -171,8 +171,8 @@ class OpcionEuropeaDiv():
         -------
         float : precio de la opción.
         """
-        s0 = self.s0_ajustado
-        return Black_Scholes(s0, self.k, self.t, self.r, self.sigma, tipo)
+        s0_ajustado = self.s0_ajustado
+        return Black_Scholes(s0_ajustado, self.k, self.t, self.r, self.sigma, tipo)
 
     # --------------------LETRAS GRIEGAS----------------------
     def delta(self, tipo='call'):
